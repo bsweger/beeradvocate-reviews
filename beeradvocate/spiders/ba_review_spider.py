@@ -58,15 +58,23 @@ class BeerReviewSpider(CrawlSpider):
         review['abv'] = response.xpath('//b[contains(text(),"Style | ABV")]/following::text()[3]')[0].extract()
         review['abv'] = review['abv'].split(' | ')[1]
         review['baRating'] = response.xpath('//span[contains(@class, "BAscore_big ba-score")]/text()')[0].extract()
-        reviewtext = response.xpath('//div[@id="rating_fullview_content_2"]')[0].xpath('.//text()').extract()
-        review['userRating'] = reviewtext[0]
-        review['rdev'] = reviewtext[3]
-        reviewslist = reviewtext[4].split(' | ')
-        review['lookRating'] = reviewslist[0].split(': ')[1]
-        review['smellRating'] = reviewslist[1].split(': ')[1]
-        review['tasteRating'] = reviewslist[2].split(': ')[1]
-        review['feelRating'] = reviewslist[3].split(': ')[1]
-        review['overallRating'] = reviewslist[4].split(': ')[1]
-        review['reviewDate'] = reviewtext[-1]
+
+        #grab first review on the page, which will be the one by the user we're scraping
+        userreview = response.xpath('//div[@id="rating_fullview_content_2"]')[0]
+        try:
+            reviewslist = userreview.xpath('span[contains(text(), "look:")]/text()')[0].extract()
+            reviewslist = reviewslist.split(' | ')
+            review['lookRating'] = reviewslist[0].split(': ')[1]
+            review['smellRating'] = reviewslist[1].split(': ')[1]
+            review['tasteRating'] = reviewslist[2].split(': ')[1]
+            review['feelRating'] = reviewslist[3].split(': ')[1]
+            review['overallRating'] = reviewslist[4].split(': ')[1]
+        except:
+            #not all reviews contain specific scores for look, smell, taste, etc.
+            pass
+        review['userRating'] = userreview.xpath('span/text()')[0].extract()
+        review['rdev'] = userreview.xpath('contains(text(), "rdev")').extract()
+        review['reviewDate'] = userreview.xpath('div/span/a/text()')[-1].extract()
         review['accessDate'] = time.strftime('%b %d, %Y')
+
         yield review
