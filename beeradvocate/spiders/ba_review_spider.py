@@ -28,7 +28,6 @@ class BeerReviewSpider(CrawlSpider):
         #site displays 50 ratings/reviews per page
         urls = ['{}&start={}'.format(response.url, x ) for x in range(0, ratings) if x%50==0]
         for url in urls:
-            #self.log('Finding links on {}'.format(url), level=log.INFO)
             yield Request(url, callback = self.parse_user_ratings_page)
 
     def parse_user_ratings_page(self, response):
@@ -43,10 +42,18 @@ class BeerReviewSpider(CrawlSpider):
         review['url'] = response.url
         review['name'] = response.xpath('//h1/text()')[0].extract()
         review['brewer'] = response.xpath('//b[contains(text(),"Brewed by:")]/following::a[1]/b/text()')[0].extract()
-        review['location'] = response.xpath('//b[contains(text(),"Brewed by:")]/following::a[3]/text()')[0].extract()
-        review['country'] = response.xpath('//b[contains(text(),"Brewed by:")]/following::a[4]/text()')[0].extract()
-        if not len(review['country']):
+        #for non-US beers, BA doesn't display brewer location, just a country
+        places = response.xpath(
+            '//b[contains(text(),"Brewed by:")]/following::a[re:test(@href, "place/directory/[a-z0-9]*/")]/text()')
+        if len(places) == 1:
+            review['location'] = places[0].extract()
             review['country'] = review['location']
+        elif len(places) == 2:
+            review['location'] = places[0].extract()
+            review['country'] = places[1].extract()
+        else:
+            #if unable to parse brewer's location/country, log & move on
+            self.log('Unable to find brewer location', level=log.INFO)
         review['style'] = response.xpath('//b[contains(text(),"Style | ABV")]/following::a[1]/b/text()')[0].extract()
         review['abv'] = response.xpath('//b[contains(text(),"Style | ABV")]/following::text()[3]')[0].extract()
         review['abv'] = review['abv'].split(' | ')[1]
