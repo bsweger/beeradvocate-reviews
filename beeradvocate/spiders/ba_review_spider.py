@@ -73,7 +73,7 @@ class BeerReviewSpider(CrawlSpider):
             #not all reviews contain specific scores for look, smell, taste, etc.
             pass
         review['userRating'] = userreview.xpath('span/text()')[0].extract()
-        review['rdev'] = userreview.xpath('contains(text(), "rdev")').extract()
+        review['rdev'] = userreview.xpath('contains(text(), "rdev")')[0].extract()
         review['reviewDate'] = userreview.xpath('div/span/a/text()')[-1].extract()
         review['accessDate'] = time.strftime('%b %d, %Y')
 
