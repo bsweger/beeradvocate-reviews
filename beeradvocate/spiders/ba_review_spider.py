@@ -5,6 +5,9 @@ from scrapy.contrib.linkextractors import LinkExtractor
 from scrapy import Request
 from scrapy import log
 import urlparse
+import datetime
+from datetime import timedelta
+from dateutil.parser import *
 
 class BeerReviewSpider(CrawlSpider):
 
@@ -90,7 +93,18 @@ class BeerReviewSpider(CrawlSpider):
                 rdev = reviewtextlist[percent_index[0]]
                 review['rdev'] = rdev.split(' ')[-1].replace('%', '')
 
-        review['reviewDate'] = userreview.xpath('div/span/a/text()')[-1].extract()
-        review['accessDate'] = time.strftime('%b %d, %Y')
+        today = datetime.datetime.now().date()
+        review_date = userreview.xpath('div/span/a/text()')[-1].extract()
+        if review_date.lower().find('today') >= 0:
+            #beer was reviewed today
+            review['reviewDate'] = today
+        else:
+            review_date = parse(review_date).date()
+            if review_date > today:
+                #review date was in format "Friday at 8 PM"
+                review['reviewDate'] = review_date - timedelta(weeks=1)
+            else:
+                review['reviewDate'] = review_date
+        review['accessDate'] = today
 
         yield review
