@@ -39,6 +39,8 @@ class BeerReviewSpider(CrawlSpider):
     def parse_rating(self, response):
         '''Scrape individual beer review'''
         review = BeerReview()
+
+        #scrape info about the beer being rated
         review['url'] = response.url
         review['name'] = response.xpath('//h1/text()')[0].extract()
         review['brewer'] = response.xpath('//b[contains(text(),"Brewed by:")]/following::a[1]/b/text()')[0].extract()
@@ -55,25 +57,39 @@ class BeerReviewSpider(CrawlSpider):
             #if unable to parse brewer's location/country, log & move on
             self.log('Unable to find brewer location', level=log.INFO)
         review['style'] = response.xpath('//b[contains(text(),"Style | ABV")]/following::a[1]/b/text()')[0].extract()
-        review['abv'] = response.xpath('//b[contains(text(),"Style | ABV")]/following::text()[3]')[0].extract()
-        review['abv'] = review['abv'].split(' | ')[1]
+        abv = response.xpath('//b[contains(text(),"Style | ABV")]/following::text()[3]')[0].extract()
+        #website displays '?' when ABV is unknown
+        if abv.find('?') < 0:
+            abv = abv.split(' | ')[1]
+            abv = abv.replace(u'\xa0','').strip()[:-1]
+            review['abv'] = abv
         review['baRating'] = response.xpath('//span[contains(@class, "BAscore_big ba-score")]/text()')[0].extract()
+        review['baRating'] = review['baRating'].replace(u'-', '')
 
+        #scrape info specific to the user's review of the beer
         #grab first review on the page, which will be the one by the user we're scraping
         userreview = response.xpath('//div[@id="rating_fullview_content_2"]')[0]
-        try:
-            reviewslist = userreview.xpath('span[contains(text(), "look:")]/text()')[0].extract()
-            reviewslist = reviewslist.split(' | ')
-            review['lookRating'] = reviewslist[0].split(': ')[1]
-            review['smellRating'] = reviewslist[1].split(': ')[1]
-            review['tasteRating'] = reviewslist[2].split(': ')[1]
-            review['feelRating'] = reviewslist[3].split(': ')[1]
-            review['overallRating'] = reviewslist[4].split(': ')[1]
-        except:
-            #not all reviews contain specific scores for look, smell, taste, etc.
-            pass
+        #grab all text in the review
+        reviewtextlist = userreview.xpath('descendant-or-self::*/text()').extract()
+
+        #get ratings for look, smell, taste, etc. (not all reviews have these)
+        subrating_index =  [i for i, s in enumerate(reviewtextlist) if 'look:' in s]
+        if len(subrating_index):
+            subratings = reviewtextlist[subrating_index[0]].split(' | ')
+            review['lookRating'] = subratings[0].split(': ')[1]
+            review['smellRating'] = subratings[1].split(': ')[1]
+            review['tasteRating'] = subratings[2].split(': ')[1]
+            review['feelRating'] = subratings[3].split(': ')[1]
+            review['overallRating'] = subratings[4].split(': ')[1]
         review['userRating'] = userreview.xpath('span/text()')[0].extract()
-        review['rdev'] = userreview.xpath('contains(text(), "rdev")')[0].extract()
+
+        #if beer has an overall Beer Advocate rating, grab user's deviation
+        if len(review['baRating']):
+            percent_index = [i for i, s in enumerate(reviewtextlist) if '%' in s]
+            if len(percent_index):
+                rdev = reviewtextlist[percent_index[0]]
+                review['rdev'] = rdev.split(' ')[-1].replace('%', '')
+
         review['reviewDate'] = userreview.xpath('div/span/a/text()')[-1].extract()
         review['accessDate'] = time.strftime('%b %d, %Y')
 
