@@ -74,23 +74,31 @@ class BeerReviewSpider(CrawlSpider):
         userreview = response.xpath('//div[@id="rating_fullview_content_2"]')[0]
         #grab all text in the review
         reviewtextlist = userreview.xpath('descendant-or-self::*/text()').extract()
+        reviewtextlist = [s.strip() for s in reviewtextlist]
+
+        #overall user rating
+        review['userRating'] = userreview.xpath('span/text()')[0].extract()
 
         #get ratings for look, smell, taste, etc. (not all reviews have these)
         subrating_index =  [i for i, s in enumerate(reviewtextlist) if 'look:' in s]
         if len(subrating_index):
-            subratings = reviewtextlist[subrating_index[0]].split(' | ')
+            subrating_index = subrating_index[0]
+            subratings = reviewtextlist[subrating_index].split(' | ')
             review['lookRating'] = subratings[0].split(': ')[1]
             review['smellRating'] = subratings[1].split(': ')[1]
             review['tasteRating'] = subratings[2].split(': ')[1]
             review['feelRating'] = subratings[3].split(': ')[1]
             review['overallRating'] = subratings[4].split(': ')[1]
-        review['userRating'] = userreview.xpath('span/text()')[0].extract()
+        else:
+            subrating_index = 0
 
         #if beer has an overall Beer Advocate rating, grab user's deviation
+        percent_index = 0
         if len(review['baRating']):
             percent_index = [i for i, s in enumerate(reviewtextlist) if '%' in s]
             if len(percent_index):
-                rdev = reviewtextlist[percent_index[0]]
+                percent_index = percent_index[0]
+                rdev = reviewtextlist[percent_index]
                 review['rdev'] = rdev.split(' ')[-1].replace('%', '')
 
         today = datetime.datetime.now().date()
@@ -106,5 +114,15 @@ class BeerReviewSpider(CrawlSpider):
             else:
                 review['reviewDate'] = review_date
         review['accessDate'] = today
+
+        #get the review text
+        if subrating_index:
+            review['review'] = ' '.join(
+                reviewtextlist[subrating_index + 1 : -3])
+        elif percent_index:
+            review['review'] = ' '.join(
+                reviewtextlist[percent_index + 1 : -3])
+        else:
+            review['review'] = ' '.join(reviewtextlist[4:-3])
 
         yield review

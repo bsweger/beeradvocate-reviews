@@ -18,5 +18,6 @@ class BeerReview(scrapy.Item):
     tasteRating = scrapy.Field()
     feelRating = scrapy.Field()
     overallRating = scrapy.Field()
+    review = scrapy.Field()
     reviewDate  = scrapy.Field()
     accessDate = scrapy.Field()
