@@ -106,11 +106,14 @@ class BeerReviewSpider(CrawlSpider):
         if review_date.lower().find('today') >= 0:
             #beer was reviewed today
             review['reviewDate'] = today
+        elif review_date.lower().find('yesterday') >= 0:
+            #beer was reviewed yesterday
+            review['reviewDate'] = today - timedelta(days = 1)
         else:
             review_date = parse(review_date).date()
             if review_date > today:
                 #review date was in format "Friday at 8 PM"
-                review['reviewDate'] = review_date - timedelta(weeks=1)
+                review['reviewDate'] = review_date - timedelta(weeks = 1)
             else:
                 review['reviewDate'] = review_date
         review['accessDate'] = today
