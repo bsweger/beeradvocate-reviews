@@ -60,11 +60,12 @@ class BeerReviewSpider(CrawlSpider):
             #if unable to parse brewer's location/country, log & move on
             self.log('Unable to find brewer location', level=log.INFO)
         review['style'] = response.xpath('//b[contains(text(),"Style | ABV")]/following::a[1]/b/text()')[0].extract()
-        abv = response.xpath('//b[contains(text(),"Style | ABV")]/following::text()').extract()[3]
-        #website displays '?' when ABV is unknown
-        if abv.find('?') < 0:
-            abv = abv.split(' | ')[1]
-            abv = abv.replace(u'\xa0','').strip()[:-1]
+        abv = response.xpath('//b[contains(text(),"Style | ABV")]/following::text()').extract()
+        abvindex = [i for i,s in enumerate(abv) if 'abv' in s.lower()][0]
+        #If ABV has a '?', it's unknown, so skip this wretched code
+        if '?' not in abv[abvindex]:
+            abv = abv[abvindex-1]
+            abv = abv.split(' | ')[1].strip()[:-1] 
             review['abv'] = abv
         review['baRating'] = response.xpath('//span[contains(@class, "BAscore_big ba-score")]/text()')[0].extract()
         review['baRating'] = review['baRating'].replace(u'-', '')
