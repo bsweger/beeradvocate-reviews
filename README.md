@@ -53,3 +53,6 @@ The scraper outputs the following information (if available) for each beer revie
 * User's review text
 * Review URL
 * Date scraped
+
+##License
+MIT License
