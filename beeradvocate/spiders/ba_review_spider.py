@@ -78,8 +78,8 @@ class BeerReviewSpider(CrawlSpider):
         #If ABV has a '?', it's unknown, so skip this wretched code
         #if '?' not in abv[abvindex]:
         #    abv = abv[abvindex-1]
-        #    abv = abv.split(' | ')[1].strip()[:-1] 
-        #    review['abv'] = abv
+        abv = abv.strip()
+        review['abv'] = abv
         review['baRating'] = response.xpath('//span[contains(@class, "BAscore_big ba-score")]/text()')[0].extract()
         review['baRating'] = review['baRating'].replace(u'-', '')
 
