@@ -59,14 +59,27 @@ class BeerReviewSpider(CrawlSpider):
         else:
             #if unable to parse brewer's location/country, log & move on
             self.log('Unable to find brewer location', level=log.INFO)
-        review['style'] = response.xpath('//b[contains(text(),"Style | ABV")]/following::a[1]/b/text()')[0].extract()
-        abv = response.xpath('//b[contains(text(),"Style | ABV")]/following::text()').extract()
-        abvindex = [i for i,s in enumerate(abv) if 'abv' in s.lower()][0]
+        review['style'] = response.xpath('//b[contains(text(),"Style")]/following::a[1]/b/text()')
+        if review['style']:
+            review['style'] = review['style'][0].extract()
+        else:
+            print "Failed to get beer style"
+            return
+        abv = response.xpath('//b[contains(text(),"ABV")]/following::text()')
+        if abv:
+            abv = abv[0].extract()
+        else:
+            print "Failed to get beer ABV"
+            return
+        #abvindex = [i for i,s in enumerate(abv) if 'abv' in s.lower()]
+        #print abvindex
+        #if abvindex and len(abvindex) > 0:
+        #    abvindex = abvindex[0]
         #If ABV has a '?', it's unknown, so skip this wretched code
-        if '?' not in abv[abvindex]:
-            abv = abv[abvindex-1]
-            abv = abv.split(' | ')[1].strip()[:-1] 
-            review['abv'] = abv
+        #if '?' not in abv[abvindex]:
+        #    abv = abv[abvindex-1]
+        abv = abv.strip()
+        review['abv'] = abv
         review['baRating'] = response.xpath('//span[contains(@class, "BAscore_big ba-score")]/text()')[0].extract()
         review['baRating'] = review['baRating'].replace(u'-', '')
 
