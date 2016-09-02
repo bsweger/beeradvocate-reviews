@@ -1,22 +1,22 @@
 # Beer Advocate User Review Scraper
 
-##Overview
+## Overview
 A simple scraper that extracts all Beeradvocate reviews and ratings for a specified username.
 
-##Example
+## Example
 To generate a .csv file called _beerreviews.csv_ of reviews and ratings for Beeradvocate username _joebeer123_:
 
     scrapy crawl bareviews -a user=joebeer123 -o beerreviews.csv
 
-##Background
-This is a small, unmaintained project written to help my brother, who wanted a copy of the 1,400 reviews he's posted on Beeradvocate.com over the past 8 years.
+## Background
+This is a small project written to help my brother, who wanted a copy of the 1,400 reviews he's posted on Beeradvocate.com over the past 8 years.
 
 Beeradvocate-reviews is not intended to (nor does it) copy Beeradvocate's entire database. Rather, it retrieves a dataset of reviews associated with a single user.
 
-##Usage
+## Usage
 **Requirements:**
 
-Python 2.7
+Python 3.4+
 
 
 1. Install dependencies:
@@ -33,7 +33,7 @@ Python 2.7
 
         scrapy crawl bareviews -a user=[username] -o beerreviews.json
 
-##Data
+## Data
 The scraper outputs the following information (if available) for each beer review:
 * Review date
 * Beer name
@@ -54,5 +54,5 @@ The scraper outputs the following information (if available) for each beer revie
 * Review URL
 * Date scraped
 
-##License
+## License
 MIT License

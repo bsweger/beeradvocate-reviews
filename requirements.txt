@@ -1,2 +1,2 @@
-Scrapy
-python-dateutil
+Scrapy==1.1
+python-dateutil==2.5.3

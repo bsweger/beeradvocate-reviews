@@ -1,6 +1,7 @@
-#scrapy model for individual Beer Advocate review
+# scrapy model for individual Beer Advocate review
 
 import scrapy
+
 
 class BeerReview(scrapy.Item):
     url = scrapy.Field()
@@ -19,5 +20,5 @@ class BeerReview(scrapy.Item):
     feelRating = scrapy.Field()
     overallRating = scrapy.Field()
     review = scrapy.Field()
-    reviewDate  = scrapy.Field()
+    reviewDate = scrapy.Field()
     accessDate = scrapy.Field()
