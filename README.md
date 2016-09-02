@@ -9,14 +9,14 @@ To generate a .csv file called _beerreviews.csv_ of reviews and ratings for Beer
     scrapy crawl bareviews -a user=joebeer123 -o beerreviews.csv
 
 ##Background
-This is a small, unmaintained project written to help my brother, who wanted a copy of the 1,400 reviews he's posted on Beeradvocate.com over the past 8 years.
+This is a small project written to help my brother, who wanted a copy of the 1,400 reviews he's posted on Beeradvocate.com over the past 8 years.
 
 Beeradvocate-reviews is not intended to (nor does it) copy Beeradvocate's entire database. Rather, it retrieves a dataset of reviews associated with a single user.
 
 ##Usage
 **Requirements:**
 
-Python 2.7
+Python 3.4+
 
 
 1. Install dependencies:

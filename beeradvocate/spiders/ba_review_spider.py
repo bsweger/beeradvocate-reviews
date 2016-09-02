@@ -1,11 +1,11 @@
 import time
 from beeradvocate.items import BeerReview
-from scrapy.contrib.spiders import CrawlSpider, Rule
-from scrapy.contrib.linkextractors import LinkExtractor
+from scrapy.spiders import CrawlSpider, Rule
+from scrapy.linkextractors import LinkExtractor
 from scrapy import Request
-from scrapy import log
-import urlparse
+import urllib
 import datetime
+import logging
 from datetime import timedelta
 from dateutil.parser import *
 
@@ -37,7 +37,7 @@ class BeerReviewSpider(CrawlSpider):
         '''Generate requests for links to individual user ratings and reviews'''
         urls = response.xpath('//a[re:test(@href, "/beer/profile/[a-z0-9]*/[a-z0-9]*/\?ba={}")]/@href'.format(self.user)).extract()
         for url in urls:
-            yield Request(urlparse.urljoin(self.ba_url, url), callback = self.parse_rating)
+            yield Request(urllib.parse.urljoin(self.ba_url, url), callback = self.parse_rating)
 
     def parse_rating(self, response):
         '''Scrape individual beer review'''
@@ -58,18 +58,18 @@ class BeerReviewSpider(CrawlSpider):
             review['country'] = places[1].extract()
         else:
             #if unable to parse brewer's location/country, log & move on
-            self.log('Unable to find brewer location', level=log.INFO)
+            logging.info('Unable to find brewer location')
         review['style'] = response.xpath('//b[contains(text(),"Style")]/following::a[1]/b/text()')
         if review['style']:
             review['style'] = review['style'][0].extract()
         else:
-            print "Failed to get beer style"
+            print("Failed to get beer style")
             return
         abv = response.xpath('//b[contains(text(),"ABV")]/following::text()')
         if abv:
             abv = abv[0].extract()
         else:
-            print "Failed to get beer ABV"
+            print("Failed to get beer ABV")
             return
         #abvindex = [i for i,s in enumerate(abv) if 'abv' in s.lower()]
         #print abvindex
